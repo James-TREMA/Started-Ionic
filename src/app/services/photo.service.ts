@@ -48,6 +48,20 @@ export class PhotoService {
   private async readAsBase64(photo: Photo): Promise<string> {
     const response = await fetch(photo.webPath!);
     const blob = await response.blob();
-    return Buffer.from(await blob.arrayBuffer()).toString('base64');
+    return await this.convertBlobToBase64(blob);
+  }  
+
+  private convertBlobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64data = reader.result as string;
+        resolve(base64data.split(',')[1]); // Supprimer la partie metadata
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
   }
+  
+
 }

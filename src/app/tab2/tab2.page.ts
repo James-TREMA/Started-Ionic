@@ -1,5 +1,6 @@
+import { PhotoService } from './../services/photo.service';
 import { Component } from '@angular/core';
-import { IonHeader, IonToolbar, IonTitle, IonContent, IonFab, IonFabButton, IonIcon } from '@ionic/angular/standalone';
+import { IonHeader, IonToolbar, IonTitle, IonContent, IonFab, IonFabButton, IonIcon, IonGrid, IonRow, IonCol, IonImg } from '@ionic/angular/standalone';
 import { ExploreContainerComponent } from '../explore-container/explore-container.component';
 
 @Component({
@@ -7,10 +8,14 @@ import { ExploreContainerComponent } from '../explore-container/explore-containe
   templateUrl: 'tab2.page.html',
   styleUrls: ['tab2.page.scss'],
   standalone: true,
-  imports: [IonIcon, IonFabButton, IonHeader, IonToolbar, IonTitle, IonContent, IonFab, ExploreContainerComponent]
+  imports: [IonCol, IonRow, IonGrid, IonIcon, IonFabButton, IonHeader, IonToolbar, IonTitle, IonContent, IonFab, ExploreContainerComponent, IonImg]
 })
 export class Tab2Page {
 
-  constructor() {}
+  constructor(public photoService: PhotoService) {}
+
+  addPhotoToGallery(){
+    this.photoService.addNewToGallery();
+  }
 
 }

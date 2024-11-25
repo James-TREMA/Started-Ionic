@@ -14,8 +14,16 @@ export class Tab2Page {
 
   constructor(public photoService: PhotoService) {}
 
-  addPhotoToGallery(){
-    this.photoService.addNewToGallery();
+  async addPhotoToGallery() {
+    try {
+      await this.photoService.addNewToGallery();
+    } catch (error) {
+      console.error('Error adding photo:', error);
+    }
+  }
+
+  trackByFn(index: number): number {
+    return index;
   }
 
 }

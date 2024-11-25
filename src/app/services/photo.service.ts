@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { Camera, CameraResultType, CameraSource, Photo } from '@capacitor/camera';
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import { Storage } from '@ionic/storage-angular';
@@ -10,12 +10,15 @@ import { UserPhoto } from '../interfaces/user-photo';
 export class PhotoService {
   photos: UserPhoto[] = [];
   private storageKey = 'photos';
+  private injector: Injector;
 
-  constructor(private storage: Storage) {}
+  constructor(private storage: Storage, injector: Injector) {
+    this.injector = injector; // Injecteur différé pour éviter les dépendances circulaires
+  }
 
   async init() {
-    await this.storage.create(); // Initialise le stockage
-    this.photos = (await this.storage.get(this.storageKey)) || []; // Charge les photos sauvegardées
+    await this.storage.create();
+    this.photos = (await this.storage.get(this.storageKey)) || [];
   }
 
   async addNewToGallery() {
@@ -28,7 +31,7 @@ export class PhotoService {
     const savedImage = await this.savePicture(capturedPhoto);
 
     this.photos.unshift(savedImage);
-    await this.savePhotos(); // Sauvegarde des photos dans le stockage
+    await this.savePhotos();
   }
 
   private async savePicture(photo: Photo): Promise<UserPhoto> {
@@ -59,7 +62,7 @@ export class PhotoService {
       const reader = new FileReader();
       reader.onloadend = () => {
         const base64data = reader.result as string;
-        resolve(base64data.split(',')[1]); // Supprime les métadonnées
+        resolve(base64data.split(',')[1]);
       };
       reader.onerror = reject;
       reader.readAsDataURL(blob);
@@ -67,6 +70,6 @@ export class PhotoService {
   }
 
   private async savePhotos() {
-    await this.storage.set(this.storageKey, this.photos); // Sauvegarde des photos dans le stockage
+    await this.storage.set(this.storageKey, this.photos);
   }
 }

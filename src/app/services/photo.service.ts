@@ -3,6 +3,7 @@ import { Camera, CameraResultType, CameraSource, Photo } from '@capacitor/camera
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import { BehaviorSubject } from 'rxjs';
 import { UserPhoto } from '../interfaces/user-photo';
+import { Capacitor } from '@capacitor/core';
 
 @Injectable({
   providedIn: 'root',
@@ -51,20 +52,39 @@ export class PhotoService {
   }
 
   private async savePicture(photo: Photo): Promise<UserPhoto> {
-    const base64Data = await this.readAsBase64(photo);
-
+    let base64Data: string;
+  
+    // Lecture en base64
+    try {
+      base64Data = await this.readAsBase64(photo);
+    } catch (error) {
+      console.error('Erreur de lecture photo en base64:', error);
+      throw new Error('Impossible de traiter la photo.');
+    }
+  
     const fileName = `${Date.now()}.${photo.format}`;
-    await Filesystem.writeFile({
-      path: fileName,
-      data: base64Data,
-      directory: Directory.Data,
-    });
-
-    return {
-      filepath: fileName,
-      webviewPath: photo.webPath,
-    };
-  }
+  
+    // Vérifier si l'environnement est une application native ou le web
+    if ((window as any).Capacitor.isNativePlatform()) {
+      // Utilisation de Filesystem pour les applications mobiles
+      await Filesystem.writeFile({
+        path: fileName,
+        data: base64Data,
+        directory: Directory.Data,
+      });
+  
+      return {
+        filepath: fileName,
+        webviewPath: Capacitor.convertFileSrc(fileName), // Conversion pour les apps natives
+      };
+    } else {
+      // Environnement web : Retourner directement les données en base64
+      return {
+        filepath: fileName,
+        webviewPath: `data:image/${photo.format};base64,${base64Data}`,
+      };
+    }
+  }  
 
   private async readAsBase64(photo: Photo): Promise<string> {
     try {

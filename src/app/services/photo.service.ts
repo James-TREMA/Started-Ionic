@@ -1,47 +1,50 @@
 import { Injectable } from '@angular/core';
 import { Camera, CameraResultType, CameraSource, Photo } from '@capacitor/camera';
 import { Directory, Filesystem } from '@capacitor/filesystem';
+import { Storage } from '@ionic/storage-angular';
 import { UserPhoto } from '../interfaces/user-photo';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class PhotoService {
   photos: UserPhoto[] = [];
+  private storageKey = 'photos';
 
-  constructor() {}
+  constructor(private storage: Storage) {}
+
+  async init() {
+    await this.storage.create(); // Initialise le stockage
+    this.photos = (await this.storage.get(this.storageKey)) || []; // Charge les photos sauvegardées
+  }
 
   async addNewToGallery() {
     const capturedPhoto = await Camera.getPhoto({
       resultType: CameraResultType.Uri,
       source: CameraSource.Camera,
-      quality: 100
+      quality: 100,
     });
-    
+
     const savedImage = await this.savePicture(capturedPhoto);
 
-    this.photos.unshift({
-      filepath: "soon...",
-      webviewPath: capturedPhoto.webPath
-    });
+    this.photos.unshift(savedImage);
+    await this.savePhotos(); // Sauvegarde des photos dans le stockage
   }
 
   private async savePicture(photo: Photo): Promise<UserPhoto> {
     const base64Data = await this.readAsBase64(photo);
     if (!base64Data) throw new Error('Something went wrong');
 
-    const fileName = Date.now() + '.' + photo.format;
+    const fileName = `${Date.now()}.${photo.format}`;
     const savedFile = await Filesystem.writeFile({
       path: fileName,
       data: base64Data,
-      directory: Directory.Data
+      directory: Directory.Data,
     });
-
-    console.log(photo.webPath);
 
     return {
       filepath: fileName,
-      webviewPath: photo.webPath
+      webviewPath: photo.webPath,
     };
   }
 
@@ -49,19 +52,21 @@ export class PhotoService {
     const response = await fetch(photo.webPath!);
     const blob = await response.blob();
     return await this.convertBlobToBase64(blob);
-  }  
+  }
 
   private convertBlobToBase64(blob: Blob): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onloadend = () => {
         const base64data = reader.result as string;
-        resolve(base64data.split(',')[1]); // Supprimer la partie metadata
+        resolve(base64data.split(',')[1]); // Supprime les métadonnées
       };
       reader.onerror = reject;
       reader.readAsDataURL(blob);
     });
   }
-  
 
+  private async savePhotos() {
+    await this.storage.set(this.storageKey, this.photos); // Sauvegarde des photos dans le stockage
+  }
 }

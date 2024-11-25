@@ -1,5 +1,5 @@
 import { PhotoService } from './../services/photo.service';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonHeader, IonToolbar, IonTitle, IonContent, IonFab, IonFabButton, IonIcon, IonGrid, IonRow, IonCol, IonImg } from '@ionic/angular/standalone';
 import { ExploreContainerComponent } from '../explore-container/explore-container.component';
@@ -10,7 +10,7 @@ import { ExploreContainerComponent } from '../explore-container/explore-containe
   styleUrls: ['tab2.page.scss'],
   standalone: true,
   imports: [
-    CommonModule, // Import du CommonModule requis pour *ngFor
+    CommonModule, // Import nécessaire pour les directives Angular comme *ngFor
     IonCol, 
     IonRow, 
     IonGrid, 
@@ -25,9 +25,13 @@ import { ExploreContainerComponent } from '../explore-container/explore-containe
     IonImg
   ]
 })
-export class Tab2Page {
-
+export class Tab2Page implements OnInit {
   constructor(public photoService: PhotoService) {}
+
+  async ngOnInit() {
+    // Initialisation pour charger les photos sauvegardées
+    await this.photoService.init();
+  }
 
   async addPhotoToGallery() {
     try {

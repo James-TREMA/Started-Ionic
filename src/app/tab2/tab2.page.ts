@@ -10,7 +10,7 @@ import { ExploreContainerComponent } from '../explore-container/explore-containe
   styleUrls: ['tab2.page.scss'],
   standalone: true,
   imports: [
-    CommonModule, // Import nécessaire pour les directives Angular comme *ngFor
+    CommonModule,
     IonCol, 
     IonRow, 
     IonGrid, 

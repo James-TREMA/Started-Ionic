@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
 import { Camera, CameraResultType, CameraSource, Photo } from '@capacitor/camera';
 import { Directory, Filesystem } from '@capacitor/filesystem';
+import { BehaviorSubject } from 'rxjs';
 import { UserPhoto } from '../interfaces/user-photo';
 
 @Injectable({
@@ -9,7 +9,7 @@ import { UserPhoto } from '../interfaces/user-photo';
 })
 export class PhotoService {
   private photosSubject = new BehaviorSubject<UserPhoto[]>([]);
-  photos$ = this.photosSubject.asObservable(); // Observable exposé
+  photos$ = this.photosSubject.asObservable();
 
   private storageKey = 'photos';
 
@@ -17,28 +17,41 @@ export class PhotoService {
 
   async init() {
     const storedPhotos = localStorage.getItem(this.storageKey);
-    this.photosSubject.next(storedPhotos ? JSON.parse(storedPhotos) : []);
+    const photos = storedPhotos ? JSON.parse(storedPhotos) : [];
+    this.photosSubject.next(photos);
   }
 
   async addNewToGallery() {
-    const capturedPhoto = await Camera.getPhoto({
-      resultType: CameraResultType.Uri,
-      source: CameraSource.Camera,
-      quality: 100,
-    });
+    try {
+      const capturedPhoto = await this.takePhoto();
 
-    const savedImage = await this.savePicture(capturedPhoto);
+      const savedImage = await this.savePicture(capturedPhoto);
 
-    const currentPhotos = this.photosSubject.value;
-    const updatedPhotos = [savedImage, ...currentPhotos];
-    this.photosSubject.next(updatedPhotos);
+      const currentPhotos = this.photosSubject.value;
+      const updatedPhotos = [savedImage, ...currentPhotos];
+      this.photosSubject.next(updatedPhotos);
 
-    this.savePhotos(updatedPhotos);
+      this.savePhotos(updatedPhotos);
+    } catch (error) {
+      console.error('Error while taking photo:', error);
+    }
+  }
+
+  private async takePhoto(): Promise<Photo> {
+    try {
+      return await Camera.getPhoto({
+        resultType: CameraResultType.Uri,
+        source: CameraSource.Camera,
+        quality: 100,
+      });
+    } catch (error) {
+      console.error('Camera error:', error);
+      throw new Error('Unable to access the camera.');
+    }
   }
 
   private async savePicture(photo: Photo): Promise<UserPhoto> {
     const base64Data = await this.readAsBase64(photo);
-    if (!base64Data) throw new Error('Something went wrong');
 
     const fileName = `${Date.now()}.${photo.format}`;
     await Filesystem.writeFile({
@@ -54,9 +67,14 @@ export class PhotoService {
   }
 
   private async readAsBase64(photo: Photo): Promise<string> {
-    const response = await fetch(photo.webPath!);
-    const blob = await response.blob();
-    return await this.convertBlobToBase64(blob);
+    try {
+      const response = await fetch(photo.webPath!);
+      const blob = await response.blob();
+      return await this.convertBlobToBase64(blob);
+    } catch (error) {
+      console.error('Error reading photo as base64:', error);
+      throw new Error('Failed to process photo.');
+    }
   }
 
   private convertBlobToBase64(blob: Blob): Promise<string> {

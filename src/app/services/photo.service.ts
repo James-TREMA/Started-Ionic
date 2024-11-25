@@ -13,11 +13,11 @@ export class PhotoService {
 
   async addNewToGallery() {
     const capturedPhoto = await Camera.getPhoto({
-      resultType: CameraResultType.Base64,
+      resultType: CameraResultType.Uri,
       source: CameraSource.Camera,
       quality: 100
     });
-
+    
     const savedImage = await this.savePicture(capturedPhoto);
 
     this.photos.unshift({

@@ -3,6 +3,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonHeader, IonToolbar, IonTitle, IonContent, IonFab, IonFabButton, IonIcon, IonGrid, IonRow, IonCol, IonImg } from '@ionic/angular/standalone';
 import { ExploreContainerComponent } from '../explore-container/explore-container.component';
+import { UserPhoto } from '../interfaces/user-photo';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-tab2',
@@ -25,23 +27,22 @@ import { ExploreContainerComponent } from '../explore-container/explore-containe
     IonImg
   ]
 })
+
 export class Tab2Page implements OnInit {
+  photos!: Observable<UserPhoto[]>;
+
   constructor(public photoService: PhotoService) {}
 
-  async ngOnInit() {
-    // Initialisation pour charger les photos sauvegardées
-    await this.photoService.init();
+  ngOnInit() {
+    this.photos = this.photoService.photos$; // Souscription à l'observable
+    this.photoService.init(); // Initialisation du service
   }
 
-  async addPhotoToGallery() {
-    try {
-      await this.photoService.addNewToGallery();
-    } catch (error) {
-      console.error('Error adding photo:', error);
-    }
+  trackByFn(index: number, photo: UserPhoto) {
+    return photo.filepath; // Clé unique pour le suivi
   }
 
-  trackByFn(index: number): number {
-    return index;
+  addPhotoToGallery() {
+    this.photoService.addNewToGallery();
   }
 }

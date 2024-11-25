@@ -1,5 +1,6 @@
 import { PhotoService } from './../services/photo.service';
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { IonHeader, IonToolbar, IonTitle, IonContent, IonFab, IonFabButton, IonIcon, IonGrid, IonRow, IonCol, IonImg } from '@ionic/angular/standalone';
 import { ExploreContainerComponent } from '../explore-container/explore-container.component';
 
@@ -8,7 +9,21 @@ import { ExploreContainerComponent } from '../explore-container/explore-containe
   templateUrl: 'tab2.page.html',
   styleUrls: ['tab2.page.scss'],
   standalone: true,
-  imports: [IonCol, IonRow, IonGrid, IonIcon, IonFabButton, IonHeader, IonToolbar, IonTitle, IonContent, IonFab, ExploreContainerComponent, IonImg]
+  imports: [
+    CommonModule, // Import du CommonModule requis pour *ngFor
+    IonCol, 
+    IonRow, 
+    IonGrid, 
+    IonIcon, 
+    IonFabButton, 
+    IonHeader, 
+    IonToolbar, 
+    IonTitle, 
+    IonContent, 
+    IonFab, 
+    ExploreContainerComponent, 
+    IonImg
+  ]
 })
 export class Tab2Page {
 
@@ -25,5 +40,4 @@ export class Tab2Page {
   trackByFn(index: number): number {
     return index;
   }
-
 }
